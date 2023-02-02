@@ -1,7 +1,8 @@
-from math import sin, cos, radians
+# TODO Write documentation, especially state which properties should be edited and which shouldn't
+from math import sin, cos
 
 class ArrowCircle:
-    def __init__(self, x, y, radius, arrow_dir, arrow_ddir, circle_id=None, arrow_id=None):
+    def __init__(self, x=0, y=0, radius=0, arrow_dir=0, arrow_ddir=0, circle_id=None, arrow_id=None):
         self.x0 = 0
         self.x1 = 0
         self.y0 = 0
@@ -27,7 +28,8 @@ class ArrowCircle:
         self.y = y
 
     def update(self, dtime: float):
-        self.arrow_dir += self.arrow_ddir * dtime
+        if self.arrow_ddir != 0:
+            self.arrow_dir += self.arrow_ddir * dtime
 
     @property
     def radius(self):
@@ -77,10 +79,10 @@ class ArrowCircle:
         self._update_y()
     
     def _update_arrow_x(self):
-        self.arrow_x1 = self.x + self.radius * cos(radians(self.arrow_dir))
+        self.arrow_x1 = self.x + self.radius * cos(self.arrow_dir)
 
     def _update_arrow_y(self):
-        self.arrow_y1 = self.y + self.radius * -sin(radians(self.arrow_dir))
+        self.arrow_y1 = self.y + self.radius * -sin(self.arrow_dir)
 
     def _update_arrow_xy(self):
         self._update_arrow_x()
