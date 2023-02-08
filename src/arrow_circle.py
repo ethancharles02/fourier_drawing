@@ -1,8 +1,8 @@
 # TODO Write documentation, especially state which properties should be edited and which shouldn't
-from math import sin, cos
+from math import sin, cos, pi
 
 class ArrowCircle:
-    def __init__(self, x=0, y=0, radius=0, arrow_dir=0, arrow_ddir=0, circle_id=None, arrow_id=None):
+    def __init__(self, x=0, y=0, radius=0, arrow_dir=0, arrow_ddir=0, circle_id=None, arrow_id=None, is_hidden_update_func=None):
         self.x0 = 0
         self.x1 = 0
         self.y0 = 0
@@ -21,15 +21,19 @@ class ArrowCircle:
         self.arrow_id = arrow_id
 
         self.radius = radius
+        self.initial_dir = arrow_dir
         self.arrow_dir = arrow_dir
         self.arrow_ddir = arrow_ddir
 
+        self._is_hidden = False
+        self._is_hidden_update_func = is_hidden_update_func
+        
         self.x = x
         self.y = y
 
-    def update(self, dtime: float):
+    def update(self, time: float):
         if self.arrow_ddir != 0:
-            self.arrow_dir += self.arrow_ddir * dtime
+            self.arrow_dir = self.initial_dir + self.arrow_ddir * time
 
     @property
     def radius(self):
@@ -40,6 +44,15 @@ class ArrowCircle:
         self._radius = value
         self._update_xy()
 
+    @property
+    def is_hidden(self):
+        return self._is_hidden
+    @is_hidden.setter
+    def is_hidden(self, value):
+        self._is_hidden = value
+        if self._is_hidden_update_func is not None:
+            self._is_hidden_update_func(self)
+        
     @property
     def x(self):
         return self._x

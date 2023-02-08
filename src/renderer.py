@@ -31,17 +31,27 @@ class Renderer(Frame):
     def update_line(self, line_id, line_points):
         self.canvas.coords(line_id, *line_points)
 
-    def _update_arrow(self, arrow_circle):
+    def update_arrow(self, arrow_circle: ArrowCircle):
         self.canvas.coords(arrow_circle.arrow_id, arrow_circle.x, arrow_circle.y, arrow_circle.arrow_x1, arrow_circle.arrow_y1)
     
-    def _update_circle(self, arrow_circle):
-        self.canvas.moveto(arrow_circle.circle_id, arrow_circle.x0, arrow_circle.y0)
-        self._update_arrow(arrow_circle)
+    def update_circle_hidden_state(self, arrow_circle: ArrowCircle):
+        if arrow_circle.is_hidden:
+            self.canvas.itemconfigure(arrow_circle.circle_id, state="hidden")
+            self.canvas.itemconfigure(arrow_circle.arrow_id, state="hidden")
+        else:
+            self.canvas.itemconfigure(arrow_circle.circle_id, state="normal")
+            self.canvas.itemconfigure(arrow_circle.arrow_id, state="normal")
+    
+    def update_circle(self, arrow_circle: ArrowCircle):
+        if not arrow_circle.is_hidden:
+            self.canvas.moveto(arrow_circle.circle_id, arrow_circle.x0, arrow_circle.y0)
+            self.update_arrow(arrow_circle)
 
 
 class Window:
     def __init__(self, renderer, update_func=None, canvas_width=800, canvas_height=600, update_delay_ms=0):
         self.old_time = monotonic()
+        self.start_time = self.old_time
         self.update_delay = update_delay_ms
         self.root = Tk()
         self.update_func = update_func
@@ -60,8 +70,9 @@ class Window:
         self.root.mainloop()
 
     def update(self):
-        dtime = monotonic() - self.old_time
-        self.old_time = monotonic()
+        time = monotonic()
+        dtime = time - self.old_time
+        self.old_time = time
         if self.update_func is not None:
-            self.update_func(dtime)
+            self.update_func(time - self.start_time, dtime)
         self.root.after(self.update_delay, self.update)
