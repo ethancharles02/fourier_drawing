@@ -12,9 +12,9 @@ from .function_analyzer import FunctionAnalyzer
 
 
 class ArrowCircleHandler:
-    def __init__(self, renderer: Renderer = None, function_analyzer = None, resultant_line: ResultantLine = None, line_duration: float = 5, line_update_time: float = 0.1,
-            arrow_circle_list: ArrowCircleList = None, num_arrow_circle_pairs: int = 1, arrow_circle_x: int = 0, arrow_circle_y: int = 0, speed_multiplier: float = 1,
-            drawing_func: Callable = None, min_radius: float = 1) -> None:
+    def __init__(self, renderer: Renderer = None, function_analyzer = None,
+                 resultant_lines: list[ResultantLine] = None, line_duration: float = 5, line_update_time: float = 0.1,
+                 arrow_circle_lists: list[ArrowCircleList] = None, min_radius: float = 1) -> None:
         self.renderer = Renderer() if renderer is None else renderer
         self.function_analyzer = FunctionAnalyzer() if function_analyzer is None else function_analyzer
         
@@ -27,67 +27,51 @@ class ArrowCircleHandler:
         self.cur_fps_time = 0
         self.frame_count = 0
         self.fps_update_time = 5
-        self.cycle_time = speed_multiplier ** -1
         
         self.min_radius = min_radius
 
-        if arrow_circle_list is None:
-            self.create_arrow_circle_list(drawing_func, num_arrow_circle_pairs, arrow_circle_x, arrow_circle_y, speed_multiplier)
+        if arrow_circle_lists is None:
+            self.arrow_circle_lists = [ArrowCircleList()]
         else:
-            self.arrow_circles = arrow_circle_list
+            self.arrow_circle_lists = arrow_circle_lists
+        for arrow_circle_list in self.arrow_circle_lists:
+            for arrow_circle in arrow_circle_list:
+                arrow_circle.is_hidden_update_func = self.renderer.update_circle_hidden_state
+                self.renderer.draw_arrow_circle(arrow_circle)
+                if arrow_circle.radius < self.min_radius:
+                    arrow_circle.is_hidden = True
 
-        if resultant_line is None:
-            self.resultant_line = ResultantLine(self.arrow_circles[-1], max_line_points)
+        if resultant_lines is None:
+            self.resultant_lines = []
+            for i in range(len(self.arrow_circle_lists)):
+                self.resultant_lines.append(ResultantLine(self.arrow_circle_lists[i][-1], max_line_points))
         else:
-            self.resultant_line = resultant_line
-    
-    def create_arrow_circle_list(self, drawing_func: Callable, num_arrow_circle_pairs: int, arrow_circle_x: int, arrow_circle_y: int, speed_multiplier: float):
-        self.arrow_circles = ArrowCircleList()
-        n = 0
-        a = 0
-        b = 1
-        radius, direction = polar(self.function_analyzer.get_complex_constant(drawing_func, n, a, b))
-        self.create_arrow_circle(x=arrow_circle_x, y=arrow_circle_y, arrow_ddir=0, radius=radius, arrow_dir=direction, is_hidden_update_func=self.renderer.update_circle_hidden_state)
+            self.resultant_lines = resultant_lines
 
-        for n in range(1, num_arrow_circle_pairs + 1):
-            radius, direction = polar(self.function_analyzer.get_complex_constant(drawing_func, n, a, b))
-            self.create_arrow_circle(arrow_ddir=2*pi*speed_multiplier*n, radius=radius, arrow_dir=direction, is_hidden_update_func=self.renderer.update_circle_hidden_state)
-
-            radius, direction = polar(self.function_analyzer.get_complex_constant(drawing_func, -n, a, b))
-            self.create_arrow_circle(arrow_ddir=2*pi*speed_multiplier*-n, radius=radius, arrow_dir=direction, is_hidden_update_func=self.renderer.update_circle_hidden_state)
-
-        self.update_circles()
-
-    def update_line(self):
-        if self.arrow_circles:
-            self.resultant_line.update_line()
-            if self.resultant_line.line_id is not None:
-                if self.resultant_line.has_even_number_points():
-                    self.renderer.update_line(self.resultant_line.line_id, self.resultant_line.line_points)
-            elif self.resultant_line.has_valid_line():
-                self.resultant_line.line_id = self.renderer.draw_line(self.resultant_line.line_points)
-
-    def create_arrow_circle(self, **kwargs) -> int:
-        arrow_circle = ArrowCircle(**kwargs)
-        self.renderer.draw_arrow_circle(arrow_circle)
-        if arrow_circle.radius < self.min_radius:
-            arrow_circle.is_hidden = True
-        self.arrow_circles.append(arrow_circle)
-        return len(self.arrow_circles) - 1
+    def update_lines(self):
+        for i in range(len(self.arrow_circle_lists)):
+            if self.arrow_circle_lists[i]:
+                self.resultant_lines[i].update_line()
+                if self.resultant_lines[i].line_id is not None:
+                    if self.resultant_lines[i].has_even_number_points():
+                        self.renderer.update_line(self.resultant_lines[i].line_id, self.resultant_lines[i].line_points)
+                elif self.resultant_lines[i].has_valid_line():
+                    self.resultant_lines[i].line_id = self.renderer.draw_line(self.resultant_lines[i].line_points)
     
     def update(self, time: float, dtime: float):
         self.total_runtime += dtime
         self.cur_fps_time += dtime
         self.frame_count += 1
         self.cur_line_time += dtime
-        self.update_circles(time % self.cycle_time)
+        self.update_circles(time)
         if self.cur_line_time >= self.line_update_time:
             self.cur_line_time = 0
-            self.update_line()
+            self.update_lines()
         if self.cur_fps_time >= self.fps_update_time:
             print(f"FPS: {self.frame_count / self.cur_fps_time}")
             self.cur_fps_time = 0
             self.frame_count = 0
 
     def update_circles(self, time: float = 0):
-        self.arrow_circles.update_circles(time, self.renderer.update_circle)
+        for arrow_circle_list in self.arrow_circle_lists:
+            arrow_circle_list.update_circles(time, self.renderer.update_circle)

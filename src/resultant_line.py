@@ -2,11 +2,11 @@
 from .arrow_circle import ArrowCircle
 
 class ResultantLine:
-    def __init__(self, tracking_arrow_circle: ArrowCircle, max_line_points: int, line_id: int = None, line_points: list[int] = []):
+    def __init__(self, tracking_arrow_circle: ArrowCircle, max_line_points: int, line_id: int = None, line_points: list[int] = None):
         self.tracking_arrow_circle = tracking_arrow_circle
         self.max_line_points = int(max_line_points + (4 - max_line_points % 4))
         self.line_id = line_id
-        self.line_points = line_points
+        self.line_points = line_points if line_points is not None else []
     
     def update_line(self):
         self.line_points.append(self.tracking_arrow_circle.arrow_x1)

@@ -26,7 +26,7 @@ class ArrowCircle:
         self.arrow_ddir = arrow_ddir
 
         self._is_hidden = False
-        self._is_hidden_update_func = is_hidden_update_func
+        self.is_hidden_update_func = is_hidden_update_func
         
         self.x = x
         self.y = y
@@ -50,8 +50,8 @@ class ArrowCircle:
     @is_hidden.setter
     def is_hidden(self, value):
         self._is_hidden = value
-        if self._is_hidden_update_func is not None:
-            self._is_hidden_update_func(self)
+        if self.is_hidden_update_func is not None:
+            self.is_hidden_update_func(self)
         
     @property
     def x(self):
