@@ -1,14 +1,36 @@
-# TODO Write documentation, especially state which properties should be edited and which shouldn't
-from math import sin, cos, pi
+"""Module for the ArrowCircle"""
+
+from math import sin, cos
+from typing import Callable
 
 class ArrowCircle:
-    def __init__(self, x=0, y=0, radius=0, arrow_dir=0, arrow_ddir=0, circle_id=None, arrow_id=None, is_hidden_update_func=None):
+    """The ArrowCircle holds information on a circle which has one arrow in it"""
+    
+    def __init__(self, x: int = 0, y: int = 0, radius: float = 0, arrow_dir: float = 0, arrow_ddir: float = 0, circle_id: int = None, arrow_id: int = None, is_hidden_update_func: Callable = None):
+        """Init method
+
+        Keyword Arguments:
+            x {int} -- X position representing the center of the circle (default: {0})
+            y {int} -- Y position representing the center of the circle (default: {0})
+            radius {int} -- Radius of the circle (default: {0})
+            arrow_dir {int} -- Initial arrow direction in radians (default: {0})
+            arrow_ddir {int} -- Directional velocity in radians (default: {0})
+            circle_id {int} -- ID of the circle as assigned by the renderer (default: {None})
+            arrow_id {int} -- ID of the arrow as assigned by the renderer (default: {None})
+            is_hidden_update_func {Callable} -- Function to run when the hidden attribute is changed (default: {None})
+        """
         self.x0 = 0
+        """{int} -- Left x for the circle, should not be edited. Changed through the x and radius attributes"""
         self.x1 = 0
+        """{int} -- Right x for the circle, should not be edited. Changed through the x and radius attributes"""
         self.y0 = 0
+        """{int} -- Top y for the circle, should not be edited. Changed through the y and radius attributes"""
         self.y1 = 0
+        """{int} -- Bottom y for the circle, should not be edited. Changed through the y and radius attributes"""
         self.arrow_x1 = 0
+        """{int} -- End x position of the arrow, should not be edited. Changed through the x, radius, and arrow_dir attributes"""
         self.arrow_y1 = 0
+        """{int} -- End y position of the arrow, should not be edited. Changed through the y, radius, and arrow_dir attributes"""
 
         self._x = 0
         self._y = 0
@@ -27,11 +49,17 @@ class ArrowCircle:
 
         self._is_hidden = False
         self.is_hidden_update_func = is_hidden_update_func
+        """Update function that gets run when the is_hidden attribute is changed"""
         
         self.x = x
         self.y = y
 
     def update(self, time: float):
+        """Updates the direction of the arrow
+
+        Arguments:
+            time {float} -- Absolute time in seconds to update the arrow to
+        """
         if self.arrow_ddir != 0:
             self.arrow_dir = self.initial_dir + self.arrow_ddir * time
 
